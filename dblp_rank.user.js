@@ -52,7 +52,7 @@ function rankConferencesGRIN(){
 		var venueEntry = new Fuse( GRIN[ rankingYear ], { "keys" : ["t"] } ).search( venueName )[0] ;
 		if ( venueEntry != undefined ){
 			$( venueItem ).parent().append( "<strong> [" + venueEntry.r + "]</strong>" );
-			var inRefineColumn = $( ".refine-by + .venue" ).find( "button[value='" + venueName.replace( / /g, "_" ) + "']" ).parent();
+			var inRefineColumn = $( ".refine-by + .venue" ).find( "button[value=\"" + venueName.replace( / /g, "_" ) + "\"]" ).parent();
 			if( $( inRefineColumn ).find( "strong" ).length == 0 ){
 				$( inRefineColumn ).append("<strong> [" + venueEntry.r + "]</strong>")
 			}
@@ -85,7 +85,7 @@ function rankJournalsSCIMAGO(){
 								}
 							});
 							$( journal ).parent().append( "<strong> [" + rank + "]</strong>" );
-							var inRefineColumn = $( ".refine-by + .venue" ).find( "button[value='" + journalItem.replace( / /g, "_" ) + "']" ).parent();
+							var inRefineColumn = $( ".refine-by + .venue" ).find( "button[value=\"" + journalItem.replace( / /g, "_" ) + "\"]" ).parent();
 							if( $( inRefineColumn ).find( "strong" ).length == 0 ){
 								$( inRefineColumn ).append("<strong> [" + rank + "]</strong>")
 							}
