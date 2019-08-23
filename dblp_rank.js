@@ -8,8 +8,6 @@
 // @grant           GM_xmlhttpRequest
 // @request         https://code.jquery.com/jquery-3.3.1.min.js
 // @copyright  	    2018+
-// @updateURL 	    https://openuserjs.org/meta/thesave/rank_dblp.meta.js
-// @downloadURL     https://openuserjs.org/install/thesave/rank_dblp.user.js
 // @icon 						https://dblp.uni-trier.de/img/favicon.ico
 // @license         GPL 3.0
 // ==/UserScript==]
