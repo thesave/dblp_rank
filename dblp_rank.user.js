@@ -4,8 +4,8 @@
 // @description     Add ranking of conferences (from GII-GRIN-SCIE) and journal (from SCIMAGO) to a DBLP researcher's page
 // @version         0.3
 // @license         MIT
-// @copyright  	    2018+
-// @icon 						https://dblp.uni-trier.de/img/favicon.ico
+// @copyright       2018+
+// @icon            https://dblp.uni-trier.de/img/favicon.ico
 // @author          thesave
 // @include         https://dblp.uni-trier.de/pers/*
 // @include         https://dblp.org/pers/*
