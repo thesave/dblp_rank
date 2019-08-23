@@ -3,7 +3,7 @@
 // @namespace       https://github.com/thesave
 // @description     Add ranking of conferences (from GII-GRIN-SCIE) and journal (from SCIMAGO) to a DBLP researcher's page
 // @version         0.3
-// @license         GPL-3.0-or-later; http://www.gnu.org/licenses/gpl-3.0.txt
+// @license         MIT
 // @icon 						https://dblp.uni-trier.de/img/favicon.ico
 // @author          thesave
 // @include         https://dblp.uni-trier.de/pers/*
