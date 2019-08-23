@@ -1,6 +1,7 @@
 // ==UserScript==
-// @name            rank_dblp
+// @name            Rank DBLP
 // @namespace       https://github.com/thesave
+// @description     Add ranking of conferences (from GII-GRIN-SCIE) and journal (from SCIMAGO) to a DBLP researcher's page
 // @version         0.3
 // @author          thesave
 // @include         https://dblp.uni-trier.de/pers/*
