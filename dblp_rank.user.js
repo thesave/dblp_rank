@@ -63,35 +63,43 @@ function rankConferencesGRIN(){
 function rankJournalsSCIMAGO(){
 	var journals = $(".article .title + a span[itemprop='isPartOf'] > span[itemprop='name']");
 	$( journals ).each( function( i, journal ){
-		var journalItem = $( journal ).text().trim();
-		var year = $( journal ).parent().parent().parent().find( "span[itemprop='datePublished']" ).text();
+		// var journalItem = $( journal ).text().trim();
+		var journalLink = $( journal ).parent().parent().attr( "href" );
 		GM_xmlhttpRequest({
 			method: "GET",
-			url: "https://www.scimagojr.com/journalsearch.php?q=" + journalItem.replace(/ /g,"+") ,
+			url: journalLink,
 			onload: function( response ) {
-				var linkToJournalPage = $( response.responseText ).find( "div.search_results > a" );
-				if( linkToJournalPage != undefined ){
-					GM_xmlhttpRequest({
-						method: "GET",
-						url: "https://www.scimagojr.com/" + $( linkToJournalPage ).attr( "href" ) ,
-						onload: function( response ) {
-							var quartiles = response.responseText.match( /var dataquartiles = "(.+)"/ )[1].replace( /;/g, "," );
-							var q = csvJSON( quartiles );
-							var rank = "";
-							$.each( q, function(i, v) {
-								if ( v.Year == year ) {
-									if( rank.length > 0 ){ rank += ", "; }
-									rank += v.Category.replace(/\(.+\)/g,"") + " : " + v.Quartile;
+				var journalItem = $( response.responseText ).find( "#breadcrumbs > ul > li > span:nth-child(3) > a > span" ).text().trim();
+				var year = $( journal ).parent().parent().parent().find( "span[itemprop='datePublished']" ).text();
+				GM_xmlhttpRequest({
+					method: "GET",
+					url: "https://www.scimagojr.com/journalsearch.php?q=" + journalItem.replace(/ /g,"+") ,
+					onload: function( response ) {
+						var linkToJournalPage = $( response.responseText ).find( "div.search_results > a" );
+						if( linkToJournalPage != undefined ){
+							GM_xmlhttpRequest({
+								method: "GET",
+								url: "https://www.scimagojr.com/" + $( linkToJournalPage ).attr( "href" ) ,
+								onload: function( response ) {
+									var quartiles = response.responseText.match( /var dataquartiles = "(.+)"/ )[1].replace( /;/g, "," );
+									var q = csvJSON( quartiles );
+									var rank = "";
+									$.each( q, function(i, v) {
+										if ( v.Year == year ) {
+											if( rank.length > 0 ){ rank += ", "; }
+											rank += v.Category.replace(/\(.+\)/g,"") + " : " + v.Quartile;
+										}
+									});
+									$( journal ).parent().append( "<strong> [" + rank + "]</strong>" );
+									var inRefineColumn = $( ".refine-by + .venue" ).find( "button[value=\"" + journalItem.replace( / /g, "_" ) + "\"]" ).parent();
+									if( $( inRefineColumn ).find( "strong" ).length == 0 ){
+										$( inRefineColumn ).append("<strong> [" + rank + "]</strong>")
+									}
 								}
 							});
-							$( journal ).parent().append( "<strong> [" + rank + "]</strong>" );
-							var inRefineColumn = $( ".refine-by + .venue" ).find( "button[value=\"" + journalItem.replace( / /g, "_" ) + "\"]" ).parent();
-							if( $( inRefineColumn ).find( "strong" ).length == 0 ){
-								$( inRefineColumn ).append("<strong> [" + rank + "]</strong>")
-							}
 						}
-					});
-				}
+					}
+				});
 			}
 		});
 	});
