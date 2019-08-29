@@ -2,7 +2,7 @@
 // @name            Rank DBLP
 // @namespace       https://github.com/thesave
 // @description     Add ranking of conferences (from GII-GRIN-SCIE) and journal (from SCIMAGO) to a DBLP researcher's page
-// @version         0.3.6
+// @version         0.3.7
 // @license         MIT
 // @copyright       2018+
 // @icon            https://dblp.uni-trier.de/img/favicon.ico
@@ -51,7 +51,7 @@ function rankConferencesGRIN(){
 		}
 		const venueEntry = new Fuse( window.GRIN_RANKING[ rankingYear ], { "keys" : ["t"], "threshold" : 0.3 } ).search( venueName )[0] ;
 		if ( venueEntry != undefined ){
-			$( venueItem ).parents( "article" ).append( "<div>" + venueEntry.t + ", rankings: <strong>" + venueEntry.r + "</strong></div>" );
+			$( venueItem ).parents( "article" ).append( "<div style=\"background-color:#f1f1f1\">" + venueEntry.t + ", rankings: <strong>" + venueEntry.r + "</strong></div>" );
 		}
 	});
 }
@@ -91,7 +91,7 @@ function rankJournalsSCIMAGO(){
 												rank += v.Category.replace(/\(.+\)/g,"") + " : " + v.Quartile;
 											}
 										});
-										$( journal ).parents( "article" ).append( "<div><a href=\"" + URI + "\">" + title + "</a>, rankings: <strong>" + rank + "</strong></div>" );
+										$( journal ).parents( "article" ).append( "<div style=\"background-color:#f1f1f1\"><a href=\"" + URI + "\">" + title + "</a>, rankings: <strong>" + rank + "</strong></div>" );
 									}
 								}
 							});
