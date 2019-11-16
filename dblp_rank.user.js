@@ -51,7 +51,7 @@ function rankConferencesGRIN(){
 		}
 		const venueEntry = new Fuse( window.GRIN_RANKING[ rankingYear ], { "keys" : ["t"], "threshold" : 0.3 } ).search( venueName )[0] ;
 		if ( venueEntry != undefined ){
-			$( venueItem ).parents( "article" ).append( "<div style=\"background-color:#f1f1f1\">" + venueEntry.t + ", rankings: <strong>" + venueEntry.r + "</strong></div>" );
+			$( venueItem ).parents( ".data" ).append( "<div style=\"background-color:#f1f1f1\">" + venueEntry.t + ", rankings: <strong>" + venueEntry.r + "</strong></div>" );
 		}
 	});
 }
@@ -91,7 +91,7 @@ function rankJournalsSCIMAGO(){
 												rank += v.Category.replace(/\(.+\)/g,"") + " : " + v.Quartile;
 											}
 										});
-										$( journal ).parents( "article" ).append( "<div style=\"background-color:#f1f1f1\"><a href=\"" + URI + "\">" + title + "</a>, rankings: <strong>" + rank + "</strong></div>" );
+										$( journal ).parents( ".data" ).append( "<div style=\"background-color:#f1f1f1\"><a href=\"" + URI + "\">" + title + "</a>, rankings: <strong>" + rank + "</strong></div>" );
 									}
 								}
 							});
