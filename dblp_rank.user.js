@@ -41,7 +41,7 @@ function openMore(){
 function rankConferencesGRIN(){
 	const venues = $(".inproceedings .title + a span[itemprop='isPartOf'] > span[itemprop='name']");
 	$( venues ).each( function( i, venueItem ){
-		const venueName = $( venueItem ).text().replace(/\(.+\)/g, "").trim();
+		const venueName = $( venueItem ).text().replace(/\(.+\)/g, "").replace(/PACMPL\s*\d*\((\w+)\)/, "$1").trim();
 		const year = parseInt( $( venueItem ).parent().parent().parent().find( "span[itemprop='datePublished']" ).text() );
 		var rankingYear = "2018";
 		if ( year < 2016 ){
