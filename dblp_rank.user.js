@@ -2,7 +2,7 @@
 // @name            Rank DBLP
 // @namespace       https://github.com/thesave
 // @description     Add ranking of conferences (from GII-GRIN-SCIE) and journal (from SCIMAGO) to a DBLP researcher's page
-// @version         0.3.9
+// @version         0.4
 // @license         MIT
 // @copyright       2018+
 // @icon            https://dblp.uni-trier.de/img/favicon.ico
@@ -41,25 +41,40 @@ function openMore(){
 function rankConferencesGRIN(){
 	const venues = $(".inproceedings .title + a span[itemprop='isPartOf'] > span[itemprop='name']");
 	$( venues ).each( function( i, venueItem ){
-		const venueName = $( venueItem ).text().replace(/PACMPL\s*\d*\((\w+)\)/, "$1").replace(/\(.+\)/g, "").trim();
-		const year = parseInt( $( venueItem ).parent().parent().parent().find( "span[itemprop='datePublished']" ).text() );
-		var rankingYear = "2018";
-		if ( year < 2016 ){
-			rankingYear = "2015";
-		} else if( year < 2018 ){
-			rankingYear = "2017";
-		}
-		const venueEntry = new Fuse( window.GRIN_RANKING[ rankingYear ], { "keys" : ["t"], "threshold" : 0.3 } ).search( venueName )[0] ;
-		if ( venueEntry != undefined ){
-			$( venueItem ).parents( ".data" ).append( "<div style=\"background-color:#f1f1f1\">" + venueEntry.t + ", rankings: <strong>" + venueEntry.r + "</strong></div>" );
-		}
+		_rankConferenceGRIN( venueItem );
 	});
+}
+
+function _rankConferenceGRIN( venueItem ){
+    const venueName = $( venueItem ).closest("a").text().replace(/\d+/g,"").replace(/PACMPL\s*\d*\((\w+)\)/, "$1").replace(/\(.+\)/g, "").trim();
+    console.log( "GRIN: " + venueName );
+    const year = parseInt( $( venueItem ).parent().parent().parent().find( "span[itemprop='datePublished']" ).text() );
+    var rankingYear = "2018";
+    if ( year < 2016 ){
+        rankingYear = "2015";
+    } else if( year < 2018 ){
+        rankingYear = "2017";
+    }
+    const venueEntry = new Fuse( window.GRIN_RANKING[ rankingYear ], { "keys" : ["t"], "threshold" : 0.3 } ).search( venueName )[0] ;
+    if ( venueEntry != undefined ){
+        $( venueItem ).parents( ".data" ).append( "<div style=\"background-color:#f1f1f1\">" + venueEntry.t + ", rankings: <strong>" + venueEntry.r + "</strong></div>" );
+    }
 }
 
 function rankJournalsSCIMAGO(){
 	const journals = $(".article .title + a span[itemprop='isPartOf'] > span[itemprop='name']");
 	$( journals ).each( function( i, journal ){
-		const journalLink = $( journal ).parent().parent().attr( "href" );
+        console.log( $( journal ).text() + ": " + $( journal ).text().includes( "PACMPL" ) );
+        if( $( journal ).text().includes( "PACMPL" ) ){
+            _rankConferenceGRIN( journal );
+        } else {
+            _rankJournalSCIMAGO( journal );
+        }
+	});
+}
+
+function _rankJournalSCIMAGO( journal ){
+const journalLink = $( journal ).parent().parent().attr( "href" );
 		GM_xmlhttpRequest({
 			method: "GET",
 			url: journalLink,
@@ -91,6 +106,10 @@ function rankJournalsSCIMAGO(){
 												rank += v.Category.replace(/\(.+\)/g,"") + " : " + v.Quartile;
 											}
 										});
+                                        if( rank.length == 0 ){
+                                            if( rank.length > 0 ){ rank += ", "; }
+                                            rank += q[ q.length - 1 ].Category.replace(/\(.+\)/g,"") + " : " + q[ q.length - 1 ].Quartile;
+                                        }
 										$( journal ).parents( ".data" ).append( "<div style=\"background-color:#f1f1f1\"><a href=\"" + URI + "\">" + title + "</a>, rankings: <strong>" + rank + "</strong></div>" );
 									}
 								}
@@ -100,7 +119,6 @@ function rankJournalsSCIMAGO(){
 				});
 			}
 		});
-	});
 }
 
 function csvJSON( csv ){
