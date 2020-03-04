@@ -2,7 +2,7 @@
 // @name            Rank DBLP
 // @namespace       https://github.com/thesave
 // @description     Add ranking of conferences (from GII-GRIN-SCIE) and journal (from SCIMAGO) to a DBLP researcher's page
-// @version         0.3.8
+// @version         0.3.8.1
 // @license         MIT
 // @copyright       2018+
 // @icon            https://dblp.uni-trier.de/img/favicon.ico
@@ -41,7 +41,7 @@ function openMore(){
 function rankConferencesGRIN(){
 	const venues = $(".inproceedings .title + a span[itemprop='isPartOf'] > span[itemprop='name']");
 	$( venues ).each( function( i, venueItem ){
-		const venueName = $( venueItem ).text().replace(/\(.+\)/g, "").replace(/PACMPL\s*\d*\((\w+)\)/, "$1").trim();
+		const venueName = $( venueItem ).text().replace(/PACMPL\s*\d*\((\w+)\)/, "$1").replace(/\(.+\)/g, "").trim();
 		const year = parseInt( $( venueItem ).parent().parent().parent().find( "span[itemprop='datePublished']" ).text() );
 		var rankingYear = "2018";
 		if ( year < 2016 ){
