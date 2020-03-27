@@ -2,7 +2,7 @@
 // @name            Rank DBLP
 // @namespace       https://github.com/thesave
 // @description     Add ranking of conferences (from GII-GRIN-SCIE) and journal (from SCIMAGO) to a DBLP researcher's page
-// @version         0.4.1
+// @version         0.4.2
 // @license         MIT
 // @copyright       2018+
 // @icon            https://dblp.uni-trier.de/img/favicon.ico
@@ -47,7 +47,7 @@ function rankConferencesGRIN(){
 
 function _rankConferenceGRIN( venueItem ){
     const venueName = $( venueItem ).closest("a").text().replace(/\d+/g,"").replace(/PACMPL\s*\d*\((\w+)\)/, "$1").replace(/\(.+\)/g, "").trim();
-    console.log( "GRIN: " + venueName );
+    // console.log( "GRIN: " + venueName );
     const year = parseInt( $( venueItem ).parent().parent().parent().find( "span[itemprop='datePublished']" ).text() );
     var rankingYear = "2018";
     if ( year < 2016 ){
@@ -64,7 +64,7 @@ function _rankConferenceGRIN( venueItem ){
 function rankJournalsSCIMAGO(){
 	const journals = $(".article .title + a span[itemprop='isPartOf'] > span[itemprop='name']");
 	$( journals ).each( function( i, journal ){
-        console.log( $( journal ).text() + ": " + $( journal ).text().includes( "PACMPL" ) );
+        // console.log( $( journal ).text() + ": " + $( journal ).text().includes( "PACMPL" ) );
         if( $( journal ).text().includes( "PACMPL" ) ){
             _rankConferenceGRIN( journal );
         } else {
