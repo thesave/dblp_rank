@@ -9,6 +9,7 @@
 // @author          thesave
 // @include         https://dblp.uni-trier.de/pers/*
 // @include         https://dblp.org/pers/*
+// @include         https://dblp.org/pid/*
 // @include         https://dblp.dagstuhl.de/*
 // @include         https://dblp1.uni-trier.de/*
 // @grant           GM_xmlhttpRequest
