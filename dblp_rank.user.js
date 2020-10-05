@@ -2,7 +2,7 @@
 // @name            Rank DBLP
 // @namespace       https://github.com/thesave
 // @description     Add ranking of conferences (from GII-GRIN-SCIE) and journal (from SCIMAGO) to a DBLP researcher's page
-// @version         0.4.8
+// @version         0.4.9
 // @license         MIT
 // @copyright       2018+
 // @icon            https://dblp.uni-trier.de/img/favicon.ico
@@ -13,6 +13,7 @@
 // @include         https://dblp.org/pid/*
 // @include         https://dblp.dagstuhl.de/*
 // @include         https://dblp1.uni-trier.de/*
+// @include         https://dblp.uni-trier.de/*
 // @grant           GM_xmlhttpRequest
 // @request         https://code.jquery.com/jquery-3.3.1.min.js
 // @updateURL 	    https://openuserjs.org/meta/thesave/Rank_DBLP.meta.js
