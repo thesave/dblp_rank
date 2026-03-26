@@ -22,21 +22,21 @@ For development, the script is split into two files:
 
 | File | Purpose |
 |---|---|
-| `header_dev_dblp_rank.user.js` | Tampermonkey header for local development |
-| `header_dblp_rank.user.js` | Tampermonkey header for production |
-| `body_dblp_rank.user.js` | Script logic (edited in VS Code or any IDE) |
+| `header_dev_dblp_rank.js` | Tampermonkey header for local development |
+| `header_dblp_rank.js` | Tampermonkey header for production |
+| `body_dblp_rank.js` | Script logic (edited in VS Code or any IDE) |
 
 **Steps:**
 
-1. Open `header_dev_dblp_rank.user.js` and edit the `@require` line to point to the local path of `body_dblp_rank.user.js` on your machine:
+1. Open `header_dev_dblp_rank.js` and edit the `@require` line to point to the local path of `body_dblp_rank.js` on your machine:
    ```javascript
-   // @require    file:///path/to/local/folder/containing/body_dblp_rank.user.js
+   // @require    file:///path/to/local/folder/containing/body_dblp_rank.js
    ```
-2. Install `header_dev_dblp_rank.user.js` in Tampermonkey -- e.g., create a new script and copy-paste the contents of the file therein
+2. Install `header_dev_dblp_rank.js` in Tampermonkey -- e.g., create a new script and copy-paste the contents of the file therein
 3. Enable **local file access** for Tampermonkey in your browser:
    - **Chrome/Edge**: Extensions → Tampermonkey → Details → toggle *Allow access to file URLs*
    - **Firefox**: Add-ons → Tampermonkey → Permissions → toggle *Access your data for all websites*
-4. Edit `body_dblp_rank.user.js` in your IDE — reload the DBLP page to pick up changes instantly, no reinstall needed
+4. Edit `body_dblp_rank.js` in your IDE — reload the DBLP page to pick up changes instantly, no reinstall needed
 
 ## Data
 
