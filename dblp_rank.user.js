@@ -39,60 +39,104 @@
   setTimeout(openMore, 250);
 }
 
+function addPendingCall() {
+  document.querySelector( "#pending-calls" ).textContent = ++window.pendingCalls;
+}
+
+function removePendingCall() {
+  document.querySelector( "#pending-calls" ).textContent = --window.pendingCalls;
+}
+
 function openMore() {
   var moreButton = $("div.refine-by.venue >  ul.more-options");
   if ($(moreButton).is(":visible")) {
     $(moreButton).find("li > button").trigger("click");
     setTimeout(function () { openMore() }, 250);
   } else {
+    window.pendingCalls = 0;
+    document.querySelector( "#stars_button" ).parentNode.insertAdjacentHTML( "beforeEnd", "<li id='pending-calls-item' style='margin-left:1em;color:white;display:inline-block;cursor:pointer;'>Pending calls: <span id='pending-calls'>0</span><li>" );
+    window.CORE_promise = Promise.withResolvers();
+    window.SCIMAGO_promise = Promise.withResolvers();
     window.initalised.promise.then(() => {
       rankConferencesGRIN();
-      rankJournalsSCIMAGO();
+      window.CORE_promise.promise.then( () => {
+        rankJournalsSCIMAGO();
+      } )
+      window.SCIMAGO_promise.promise.then( () => {
+        document.querySelector( "#pending-calls-item" ).remove();
+      } )
     })
   }
 }
 
 function rankConferencesGRIN() {
   const venues = document.querySelectorAll(".inproceedings .title + a");
-  venues.forEach(venueItem => rankConferenceGRIN(venueItem));
+  const venueIterator = venues[Symbol.iterator]();
+  const spooler = async (i) => {
+    const next = i.next();
+    if (!next.done) {
+      await rankConferenceGRIN(next.value)
+      setTimeout(() => {
+        spooler(i);
+      }, 500);
+    } else {
+      window.CORE_promise.resolve();
+    }
+  };
+  spooler(venueIterator);
+  // venues.forEach(venueItem => rankConferenceGRIN(venueItem));
 }
 
-function rankConferenceGRIN(venueItem) {
+async function rankConferenceGRIN(venueItem) {
   const _venueItem = venueItem;
   const venueAcronym = venueItem.textContent.replace(/\d+/g, "").replace(/\(.*\)/g, "").trim();
   const addToElement = (text) => { _venueItem.parentNode.insertAdjacentHTML("beforeEnd", text); };
-  const handleResult = ( result  => {
+  const handleResult = (result => {
     // console.log(result);
-    if( result.hasOwnProperty( "rankings" ) ){
+    if (result.hasOwnProperty("rankings")) {
       const year = parseInt(_venueItem.querySelector("span[itemprop='datePublished']").textContent.trim());
       const years = Object.keys(result.rankings).map(y => parseInt(y)).sort((a, b) => a - b);
       const key = findYearKey(years, year);
       if (key === 0) {
-         addToElement( "<div style=\"background-color:#f1f1f1\">" + result.title + ", ranking CORE: <strong>older than ranking</strong></div>" );
+        addToElement("<div style=\"background-color:#f1f1f1\">" + result.title + ", ranking CORE: <strong>older than ranking</strong></div>");
       } else {
-        addToElement( "<div style=\"background-color:#f1f1f1\">" + result.title + ", ranking CORE: <strong>  " + result.rankings[key] + "</strong></div>" );
+        addToElement("<div style=\"background-color:#f1f1f1\">" + result.title + ", ranking CORE: <strong>  " + result.rankings[key] + "</strong></div>");
       }
     } else {
-      addToElement( "<div style=\"background-color:#f1f1f1\">" + result.title + ", ranking CORE: <strong>  NOT FOUND </strong></div>" );
+      addToElement("<div style=\"background-color:#f1f1f1\">" + result.title + ", ranking CORE: <strong>  NOT FOUND </strong></div>");
     }
   });
   const result = searchCoreAcronym(venueAcronym);
-  if ( result.hasOwnProperty( "rankings" ) ) {
+  if (result.hasOwnProperty("rankings")) {
     handleResult(result);
   } else {
-    fetchConferenceName(venueItem.getAttribute("href")).then(venueName => {
-      if (venueName === "") {
-        handleResult(result);
-      } else {
-        handleResult(searchCoreFullName(venueName));
-      }
-    });
+    addPendingCall();
+    venueName = await fetchConferenceName(venueItem.getAttribute("href"));
+    removePendingCall();
+    if (venueName == null || venueName == undefined || venueName === "") {
+      handleResult(result);
+    } else {
+      handleResult(searchCoreFullName(venueName));
+    }
   }
 }
 
 function rankJournalsSCIMAGO() {
   const journals = document.querySelectorAll(".article .title + a span[itemprop='isPartOf'] > span[itemprop='name']");
-  journals.forEach(journal => rankJournalSCIMAGO(journal));
+  const journalsIterator = journals[Symbol.iterator]();
+  const spooler = async (i) => {
+    const next = i.next();
+    if (!next.done) {
+      await rankJournalSCIMAGO(next.value)
+      setTimeout(() => {
+        spooler(i);
+      }, 1000);
+    } else {
+      window.SCIMAGO_promise.resolve();
+    }
+  };
+  spooler(journalsIterator);
+  // journals.forEach(journal => rankJournalSCIMAGO(journal));
 }
 
 function getParentNode(element, selector) {
@@ -104,10 +148,12 @@ function getParentNode(element, selector) {
   }
 }
 
-function rankJournalSCIMAGO(journal) {
+async function rankJournalSCIMAGO(journal) {
   const _journal = journal;
-  const addToElement = ( text ) => { getParentNode(_journal, ".data").insertAdjacentHTML("beforeEnd", text); };
+  const addToElement = (text) => { getParentNode(_journal, ".data").insertAdjacentHTML("beforeEnd", text); };
   const journalLink = journal.parentElement.parentElement.getAttribute("href");
+  const search = Promise.withResolvers();
+  addPendingCall();
   GM_xmlhttpRequest({
     method: "GET",
     url: journalLink,
@@ -115,20 +161,23 @@ function rankJournalSCIMAGO(journal) {
       const ownerDocument = document.implementation.createHTMLDocument('virtual');
       const journalItem = $(response.responseText, ownerDocument).find("#breadcrumbs > ul > li > span:nth-child(3) > a > span").text().trim();
       result = searchScimago(journalItem);
-      if ( result.hasOwnProperty( "rankings" ) ){
+      if (result.hasOwnProperty("rankings")) {
         const year = parseInt(journal.parentElement.parentElement.parentElement.querySelector("span[itemprop='datePublished']").textContent);
         const years = Object.keys(result.rankings).map(y => parseInt(y)).sort((a, b) => a - b);
         key = findYearKey(years, year)
         if (key === 0) {
-          addToElement( "<div style=\"background-color:#f1f1f1\">" + journalItem + ", ranking SJR: <strong> older than ranking</strong></div>" );
+          addToElement("<div style=\"background-color:#f1f1f1\">" + journalItem + ", ranking SJR: <strong> older than ranking</strong></div>");
         } else {
-          addToElement( "<div style=\"background-color:#f1f1f1\">" + journalItem + ", ranking SJR: <strong>  " + result.rankings[key] + "</strong></div>" );
+          addToElement("<div style=\"background-color:#f1f1f1\">" + journalItem + ", ranking SJR: <strong>  " + result.rankings[key] + "</strong></div>");
         }
       } else {
-          addToElement( "<div style=\"background-color:#f1f1f1\">" + journalItem + ", ranking SJR <strong> NOT FOUND </strong></div>" );
+        addToElement("<div style=\"background-color:#f1f1f1\">" + journalItem + ", ranking SJR <strong> NOT FOUND </strong></div>");
       }
+      removePendingCall();
+      search.resolve();
     }
   });
+  return search.promise;
 }
 
 async function fetchHeadline(url) {
