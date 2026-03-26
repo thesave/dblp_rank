@@ -2,7 +2,7 @@
 // @name            Rank DBLP
 // @namespace       https://github.com/thesave
 // @description     Add ranking of conferences (from iCORE 2008, 2013, 2014, 2017, 2018, 2020, 2021, 2023, and 2026) and journal (from SCIMAGO 1999-2025) to a DBLP researcher's page
-// @version         0.7
+// @version         0.7.1
 // @license         MIT
 // @copyright       2018+
 // @icon            https://dblp.uni-trier.de/img/favicon.ico
@@ -21,7 +21,7 @@
 // @request         https://code.jquery.com/jquery-3.3.1.min.js
 // @require         https://unpkg.com/fflate@0.8.2/umd/index.js
 // @require         https://cdn.jsdelivr.net/npm/@leeoniya/ufuzzy@1.0.19/dist/uFuzzy.iife.min.js
-// @updateURL .     https://openuserjs.org/meta/thesave/Rank_DBLP.meta.js
+// @updateURL       https://openuserjs.org/meta/thesave/Rank_DBLP.meta.js
 // @downloadURL     https://openuserjs.org/install/thesave/Rank_DBLP.user.js
 // ==/UserScript==]
 

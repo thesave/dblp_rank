@@ -7,72 +7,94 @@ function removeInformal() {
 
 function openMore() {
   var moreButton = $("div.refine-by.venue >  ul.more-options");
-  if ( $(moreButton).is(":visible") ) {
+  if ($(moreButton).is(":visible")) {
     $(moreButton).find("li > button").trigger("click");
     setTimeout(function () { openMore() }, 250);
   } else {
-    window.initalised.promise.then( () => {
+    window.initalised.promise.then(() => {
       rankConferencesGRIN();
       rankJournalsSCIMAGO();
-    } )
+    })
   }
 }
 
 function rankConferencesGRIN() {
-  const venues = $(".inproceedings .title + a");
-  $(venues).each(function (i, venueItem) {
-    rankConferenceGRIN(venueItem);
-  });
+  const venues = document.querySelectorAll(".inproceedings .title + a");
+  venues.forEach(venueItem => rankConferenceGRIN(venueItem));
 }
 
 function rankConferenceGRIN(venueItem) {
-  const venueAcronym = $(venueItem).closest("a").text().replace(/\d+/g, "").replace(/PACMPL\s*\d*\((\w+)\)/, "$1").replace(/\(.*\)/g, "").trim();
-  const handleResult = (result => {
+  const _venueItem = venueItem;
+  const venueAcronym = venueItem.textContent.replace(/\d+/g, "").replace(/\(.*\)/g, "").trim();
+  const addToElement = (text) => { _venueItem.parentNode.insertAdjacentHTML("beforeEnd", text); };
+  const handleResult = ( result  => {
     // console.log(result);
-    const year = parseInt($(venueItem).parent().parent().parent().find("span[itemprop='datePublished']").text());
-    const years = Object.keys(result.rankings).sort((a, b) => a - b);
-    const key = findYearKey(years, year)
-    $(venueItem).parents(".data").append("<div style=\"background-color:#f1f1f1\">" + result.title + ", ranking: <strong> CORE: " + result.rankings[key] + "</div>");
+    if( result.hasOwnProperty( "rankings" ) ){
+      const year = parseInt(_venueItem.querySelector("span[itemprop='datePublished']").textContent.trim());
+      const years = Object.keys(result.rankings).map(y => parseInt(y)).sort((a, b) => a - b);
+      const key = findYearKey(years, year);
+      if (key === 0) {
+         addToElement( "<div style=\"background-color:#f1f1f1\">" + result.title + ", ranking CORE: <strong>older than ranking</strong></div>" );
+      } else {
+        addToElement( "<div style=\"background-color:#f1f1f1\">" + result.title + ", ranking CORE: <strong>  " + result.rankings[key] + "</strong></div>" );
+      }
+    } else {
+      addToElement( "<div style=\"background-color:#f1f1f1\">" + result.title + ", ranking CORE: <strong>  NOT FOUND </strong></div>" );
+    }
   });
   const result = searchCoreAcronym(venueAcronym);
-  if (result.rankings[0] != "NOT FOUND") {
+  if ( result.hasOwnProperty( "rankings" ) ) {
     handleResult(result);
   } else {
-    fetchConferenceName(venueItem.getAttribute("href")).then( venueName  => {
-      if ( venueName === "" ){
-        handleResult( result );
+    fetchConferenceName(venueItem.getAttribute("href")).then(venueName => {
+      if (venueName === "") {
+        handleResult(result);
       } else {
-        handleResult( searchCoreFullName(venueName) );
+        handleResult(searchCoreFullName(venueName));
       }
     });
   }
 }
 
 function rankJournalsSCIMAGO() {
- const journals = $(".article .title + a span[itemprop='isPartOf'] > span[itemprop='name']");
- $(journals).each(function (i, journal) {
-  //console.log( $( journal ).text() + ": " + $( journal ).text().includes( "PACMPL" ) );
-  // if ($(journal).text().includes("PACMPL")) {
-  //  _rankConferenceGRIN(journal);
-  // } else {
-   rankJournalSCIMAGO(journal);
- });
+  const journals = document.querySelectorAll(".article .title + a span[itemprop='isPartOf'] > span[itemprop='name']");
+  journals.forEach(journal => rankJournalSCIMAGO(journal));
+}
+
+function getParentNode(element, selector) {
+  const parent = element.parentNode;
+  if (parent != null && parent != undefined && parent.matches(selector)) {
+    return parent;
+  } else {
+    return getParentNode(parent, selector);
+  }
 }
 
 function rankJournalSCIMAGO(journal) {
- const journalLink = $(journal).parent().parent().attr("href");
- GM_xmlhttpRequest({
-  method: "GET",
-  url: journalLink,
-  onload: function (response) {
-   const ownerDocument = document.implementation.createHTMLDocument('virtual');
-   const journalItem = $(response.responseText, ownerDocument).find("#breadcrumbs > ul > li > span:nth-child(3) > a > span").text().trim();
-   const year = $(journal).parent().parent().parent().find("span[itemprop='datePublished']").text();
-   result = searchScimago(journalItem);
-   const years = Object.keys(result.rankings).sort((a, b) => a - b);
-   key = findYearKey(years, year)
-   $(journal).parents(".data").append("<div style=\"background-color:#f1f1f1\">" + journalItem + ", ranking: <strong>" + result.rankings[key] + "</strong></div>");
-  }});
+  const _journal = journal;
+  const addToElement = ( text ) => { getParentNode(_journal, ".data").insertAdjacentHTML("beforeEnd", text); };
+  const journalLink = journal.parentElement.parentElement.getAttribute("href");
+  GM_xmlhttpRequest({
+    method: "GET",
+    url: journalLink,
+    onload: function (response) {
+      const ownerDocument = document.implementation.createHTMLDocument('virtual');
+      const journalItem = $(response.responseText, ownerDocument).find("#breadcrumbs > ul > li > span:nth-child(3) > a > span").text().trim();
+      result = searchScimago(journalItem);
+      if ( result.hasOwnProperty( "rankings" ) ){
+        const year = parseInt(journal.parentElement.parentElement.parentElement.querySelector("span[itemprop='datePublished']").textContent);
+        const years = Object.keys(result.rankings).map(y => parseInt(y)).sort((a, b) => a - b);
+        key = findYearKey(years, year)
+        if (key === 0) {
+          addToElement( "<div style=\"background-color:#f1f1f1\">" + journalItem + ", ranking SJR: <strong> older than ranking</strong></div>" );
+        } else {
+          addToElement( "<div style=\"background-color:#f1f1f1\">" + journalItem + ", ranking SJR: <strong>  " + result.rankings[key] + "</strong></div>" );
+        }
+      } else {
+          addToElement( "<div style=\"background-color:#f1f1f1\">" + journalItem + ", ranking SJR <strong> NOT FOUND </strong></div>" );
+      }
+    }
+  });
 }
 
 async function fetchHeadline(url) {
@@ -92,13 +114,12 @@ async function fetchHeadline(url) {
 }
 
 async function fetchConferenceName(url) {
-  try 
-  {
+  try {
     url = url.match(/(https?:\/\/[^/]+\/db\/conf\/[^/]+)/)[1];
     return fetchHeadline(url);
-  } catch ( error ){
-    console.log( `Could not fetch url:${url}` );
-    return Promise.resolve( "" );
+  } catch (error) {
+    console.log(`Could not fetch url:${url}`);
+    return Promise.resolve("");
   }
 }
 
@@ -156,7 +177,7 @@ async function init() {
 
 function searchInDataset(query, dataset, dataset_titles, dataset_titles_lc, uf) {
   const [idxs, info, order] = uf.search(dataset_titles_lc, query);
-  if (idxs === null || idxs.length == 0) return { title: query, rankings: { "0": "NOT FOUND" } };
+  if (idxs === null || idxs.length == 0) return { title: query };
   const title = dataset_titles[idxs[order.indexOf(0)]];
   return { title, rankings: dataset[title] };
 }
@@ -164,11 +185,11 @@ function searchInDataset(query, dataset, dataset_titles, dataset_titles_lc, uf) 
 function searchCoreAcronym(query) {
   // console.log( `search core acronym ${query}` );
   const ql = query.toLowerCase();
-  const exact = window.CORE_TITLES.filter( t => t.toLowerCase() === ql );
-  if ( exact.length > 0 ){
-    return { title: exact[ 0 ], rankings: window.CORE[ exact[ 0 ] ] }
+  const exact = window.CORE_TITLES.filter(t => t.toLowerCase() === ql);
+  if (exact.length > 0) {
+    return { title: exact[0], rankings: window.CORE[exact[0]] }
   } else {
-    return { title: query, rankings: { "0": "NOT FOUND" } }
+    return { title: query }
   }
 }
 
