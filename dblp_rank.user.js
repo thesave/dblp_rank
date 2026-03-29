@@ -2,7 +2,7 @@
 // @name            Rank DBLP
 // @namespace       https://github.com/thesave
 // @description     Add ranking of conferences (from iCORE 2008, 2013, 2014, 2017, 2018, 2020, 2021, 2023, and 2026) and journal (from SCIMAGO 1999-2025) to a DBLP researcher's page
-// @version         0.7.3
+// @version         0.8
 // @license         MIT
 // @copyright       2018+
 // @icon            https://dblp.uni-trier.de/img/favicon.ico
@@ -40,11 +40,11 @@
 }
 
 function addPendingCall() {
-  document.querySelector( "#pending-calls" ).textContent = ++window.pendingCalls;
+  document.querySelector("#pending-calls").textContent = ++window.pendingCalls;
 }
 
 function removePendingCall() {
-  document.querySelector( "#pending-calls" ).textContent = --window.pendingCalls;
+  document.querySelector("#pending-calls").textContent = --window.pendingCalls;
 }
 
 function openMore() {
@@ -54,17 +54,17 @@ function openMore() {
     setTimeout(function () { openMore() }, 250);
   } else {
     window.pendingCalls = 0;
-    document.querySelector( "#stars_button" ).parentNode.insertAdjacentHTML( "beforeEnd", "<li id='pending-calls-item' style='margin-left:1em;color:white;display:inline-block;cursor:pointer;'>Pending calls: <span id='pending-calls'>0</span><li>" );
+    document.querySelector("#stars_button").parentNode.insertAdjacentHTML("beforeEnd", "<li id='pending-calls-item' style='margin-left:1em;color:white;display:inline-block;cursor:pointer;'>Pending calls: <span id='pending-calls'>0</span><li>");
     window.CORE_promise = Promise.withResolvers();
     window.SCIMAGO_promise = Promise.withResolvers();
     window.initalised.promise.then(() => {
       rankConferencesGRIN();
-      window.CORE_promise.promise.then( () => {
+      window.CORE_promise.promise.then(() => {
         rankJournalsSCIMAGO();
-      } )
-      window.SCIMAGO_promise.promise.then( () => {
-        document.querySelector( "#pending-calls-item" ).remove();
-      } )
+      })
+      window.SCIMAGO_promise.promise.then(() => {
+        document.querySelector("#pending-calls-item").remove();
+      })
     })
   }
 }
@@ -110,9 +110,16 @@ async function rankConferenceGRIN(venueItem) {
   if (result.hasOwnProperty("rankings")) {
     handleResult(result);
   } else {
-    addPendingCall();
-    venueName = await fetchConferenceName(venueItem.getAttribute("href"));
-    removePendingCall();
+    let venueName = null;
+    const venueLink = venueItem.getAttribute("href");
+    if (Cache.has()) {
+      venueName = Cache.get(venueLink)
+    } else {
+      addPendingCall();
+      venueName = await fetchConferenceName(venueLink);
+      Cache.set(venueLink, venueName);
+      removePendingCall();
+    }
     if (venueName == null || venueName == undefined || venueName === "") {
       handleResult(result);
     } else {
@@ -154,29 +161,37 @@ async function rankJournalSCIMAGO(journal) {
   const journalLink = journal.parentElement.parentElement.getAttribute("href");
   const search = Promise.withResolvers();
   addPendingCall();
-  GM_xmlhttpRequest({
-    method: "GET",
-    url: journalLink,
-    onload: function (response) {
-      const ownerDocument = document.implementation.createHTMLDocument('virtual');
-      const journalItem = $(response.responseText, ownerDocument).find("#breadcrumbs > ul > li > span:nth-child(3) > a > span").text().trim();
-      result = searchScimago(journalItem);
-      if (result.hasOwnProperty("rankings")) {
-        const year = parseInt(journal.parentElement.parentElement.parentElement.querySelector("span[itemprop='datePublished']").textContent);
-        const years = Object.keys(result.rankings).map(y => parseInt(y)).sort((a, b) => a - b);
-        key = findYearKey(years, year)
-        if (key === 0) {
-          addToElement("<div style=\"background-color:#f1f1f1\">" + journalItem + ", ranking SJR: <strong> older than ranking</strong></div>");
-        } else {
-          addToElement("<div style=\"background-color:#f1f1f1\">" + journalItem + ", ranking SJR: <strong>  " + result.rankings[key] + "</strong></div>");
-        }
+  const handleResponse = (response) => {
+    const ownerDocument = document.implementation.createHTMLDocument('virtual');
+    const journalItem = $(response.responseText, ownerDocument).find("#breadcrumbs > ul > li > span:nth-child(3) > a > span").text().trim();
+    result = searchScimago(journalItem);
+    if (result.hasOwnProperty("rankings")) {
+      const year = parseInt(journal.parentElement.parentElement.parentElement.querySelector("span[itemprop='datePublished']").textContent);
+      const years = Object.keys(result.rankings).map(y => parseInt(y)).sort((a, b) => a - b);
+      key = findYearKey(years, year);
+      if (key === 0) {
+        addToElement("<div style=\"background-color:#f1f1f1\">" + journalItem + ", ranking SJR: <strong> older than ranking</strong></div>");
       } else {
-        addToElement("<div style=\"background-color:#f1f1f1\">" + journalItem + ", ranking SJR <strong> NOT FOUND </strong></div>");
+        addToElement("<div style=\"background-color:#f1f1f1\">" + journalItem + ", ranking SJR: <strong>  " + result.rankings[key] + "</strong></div>");
       }
-      removePendingCall();
-      search.resolve();
+    } else {
+      addToElement("<div style=\"background-color:#f1f1f1\">" + journalItem + ", ranking SJR <strong> NOT FOUND </strong></div>");
     }
-  });
+    removePendingCall();
+    search.resolve();
+  }
+  if (Cache.has(journal)) {
+    handleResponse(Cache.get(journal));
+  } else {
+    GM_xmlhttpRequest({
+      method: "GET",
+      url: journalLink,
+      onload: (response) => {
+        Cache.set(journalLink, response);
+        handleResponse(response);
+      }
+    });
+  }
   return search.promise;
 }
 
@@ -295,3 +310,27 @@ function loadData(b64) {
     });
   });
 }
+
+const Cache = {
+  set(key, value) {
+    const entry = { value: value };
+    GM_setValue(key, JSON.stringify(entry));
+  },
+
+  get(key) {
+    const raw = GM_getValue(key, null);
+    const entry = JSON.parse(raw);
+    return entry.value;
+  },
+
+  has(key) {
+    const raw = GM_getValue(key, null);
+    if (!raw) return false;
+    try {
+      JSON.parse(raw);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+};
