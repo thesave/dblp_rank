@@ -2,7 +2,7 @@
 // @name            Rank DBLP
 // @namespace       https://github.com/thesave
 // @description     Add ranking of conferences (from iCORE 2008, 2013, 2014, 2017, 2018, 2020, 2021, 2023, and 2026) and journal (from SCIMAGO 1999-2025) to a DBLP researcher's page
-// @version         0.8
+// @version         0.8.1
 // @license         MIT
 // @copyright       2018+
 // @icon            https://dblp.uni-trier.de/img/favicon.ico
