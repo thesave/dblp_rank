@@ -8,6 +8,7 @@ A Tampermonkey userscript that enriches [DBLP](https://dblp.uni-trier.de) pages 
 - Displays **(I)CORE rankings** (A*, A, B, C) for conferences directly on DBLP pages, year by year
 - Fuzzy search by full conference/journal name or acronym, with exact and prefix match prioritisation
 - All ranking data is **bundled locally** — no external API calls at runtime, just a single fetch per dataset (see section on Data)
+- A cache system to limit multiple calls to DBLP for fetching long-form conference and journal names
 
 ## Installation
 
@@ -27,7 +28,7 @@ For development, the script is split into two files:
 
 **Steps:**
 
-1. Add the `@require` line to point to the local path of `body_dblp_rank.js` on your machine:
+1. Add the `@require` line to the script's header to point to the local path of `body_dblp_rank.js` on your machine:
    ```javascript
    // @require    file:///path/to/local/folder/containing/body_dblp_rank.js
    ```
