@@ -6,11 +6,17 @@ function removeInformal() {
 }
 
 function addPendingCall() {
+  if ( window.pendingCalls == 0 ){
+    document.querySelector("#stars_button").parentNode.insertAdjacentHTML("beforeEnd", "<li id='pending-calls-item' style='margin-left:1em;color:white;display:inline-block;cursor:pointer;'>Pending calls: <span id='pending-calls'>0</span></li>");
+  }
   document.querySelector("#pending-calls").textContent = ++window.pendingCalls;
 }
 
 function removePendingCall() {
   document.querySelector("#pending-calls").textContent = --window.pendingCalls;
+  if( window.pendingCalls == 0 ){
+    document.querySelector("#pending-calls-item").remove();
+  }
 }
 
 function openMore() {
@@ -20,37 +26,16 @@ function openMore() {
     setTimeout(function () { openMore() }, 250);
   } else {
     window.pendingCalls = 0;
-    document.querySelector("#stars_button").parentNode.insertAdjacentHTML("beforeEnd", "<li id='pending-calls-item' style='margin-left:1em;color:white;display:inline-block;cursor:pointer;'>Pending calls: <span id='pending-calls'>0</span><li>");
-    window.CORE_promise = Promise.withResolvers();
-    window.SCIMAGO_promise = Promise.withResolvers();
     window.initalised.promise.then(() => {
       rankConferencesGRIN();
-      window.CORE_promise.promise.then(() => {
-        rankJournalsSCIMAGO();
-      })
-      window.SCIMAGO_promise.promise.then(() => {
-        document.querySelector("#pending-calls-item").remove();
-      })
-    })
+      rankJournalsSCIMAGO();
+    });
   }
 }
 
 function rankConferencesGRIN() {
   const venues = document.querySelectorAll(".inproceedings .title + a");
-  const venueIterator = venues[Symbol.iterator]();
-  const spooler = async (i) => {
-    const next = i.next();
-    if (!next.done) {
-      await rankConferenceGRIN(next.value)
-      setTimeout(() => {
-        spooler(i);
-      }, 500);
-    } else {
-      window.CORE_promise.resolve();
-    }
-  };
-  spooler(venueIterator);
-  // venues.forEach(venueItem => rankConferenceGRIN(venueItem));
+  venues.forEach(venueItem => rankConferenceGRIN(venueItem));
 }
 
 async function rankConferenceGRIN(venueItem) {
@@ -78,11 +63,11 @@ async function rankConferenceGRIN(venueItem) {
   } else {
     let venueName = null;
     const venueLink = venueItem.getAttribute("href");
-    if (Cache.has()) {
+    if (Cache.has(venueLink)) {
       venueName = Cache.get(venueLink)
     } else {
       addPendingCall();
-      venueName = await fetchConferenceName(venueLink);
+      venueName = await window.scheduler.add(() => fetchConferenceName(venueLink));
       Cache.set(venueLink, venueName);
       removePendingCall();
     }
@@ -96,20 +81,7 @@ async function rankConferenceGRIN(venueItem) {
 
 function rankJournalsSCIMAGO() {
   const journals = document.querySelectorAll(".article .title + a span[itemprop='isPartOf'] > span[itemprop='name']");
-  const journalsIterator = journals[Symbol.iterator]();
-  const spooler = async (i) => {
-    const next = i.next();
-    if (!next.done) {
-      await rankJournalSCIMAGO(next.value)
-      setTimeout(() => {
-        spooler(i);
-      }, 1000);
-    } else {
-      window.SCIMAGO_promise.resolve();
-    }
-  };
-  spooler(journalsIterator);
-  // journals.forEach(journal => rankJournalSCIMAGO(journal));
+  journals.forEach(journal => rankJournalSCIMAGO(journal));
 }
 
 function getParentNode(element, selector) {
@@ -127,9 +99,7 @@ async function rankJournalSCIMAGO(journal) {
   const journalLink = journal.parentElement.parentElement.getAttribute("href");
   const search = Promise.withResolvers();
   addPendingCall();
-  const handleResponse = (response) => {
-    const ownerDocument = document.implementation.createHTMLDocument('virtual');
-    const journalItem = $(response.responseText, ownerDocument).find("#breadcrumbs > ul > li > span:nth-child(3) > a > span").text().trim();
+  const handleResponse = (journalItem) => {
     result = searchScimago(journalItem);
     if (result.hasOwnProperty("rankings")) {
       const year = parseInt(journal.parentElement.parentElement.parentElement.querySelector("span[itemprop='datePublished']").textContent);
@@ -146,17 +116,20 @@ async function rankJournalSCIMAGO(journal) {
     removePendingCall();
     search.resolve();
   }
-  if (Cache.has(journal)) {
-    handleResponse(Cache.get(journal));
+  if (Cache.has(journalLink)) {
+    handleResponse(Cache.get(journalLink));
   } else {
-    GM_xmlhttpRequest({
+    window.scheduler.add(() => new Promise((resolve) => GM_xmlhttpRequest({
       method: "GET",
       url: journalLink,
       onload: (response) => {
-        Cache.set(journalLink, response);
-        handleResponse(response);
+        const ownerDocument = document.implementation.createHTMLDocument('virtual');
+        const journalItem = $(response.responseText, ownerDocument).find("#breadcrumbs > ul > li > span:nth-child(3) > a > span").text().trim();
+        Cache.set(journalLink, journalItem);
+        handleResponse(journalItem);
+        resolve();
       }
-    });
+    })));
   }
   return search.promise;
 }
@@ -220,6 +193,7 @@ function fetch_bin(url) {
 }
 
 async function init() {
+  window.scheduler = new RequestScheduler({ delay: 1000, concurrency: 1 });
   const [core, scimago] = await Promise.all([
     fetch_bin("https://raw.githubusercontent.com/thesave/dblp_rank/refs/heads/master/data/core_binary.bin"),
     fetch_bin("https://raw.githubusercontent.com/thesave/dblp_rank/refs/heads/master/data/scimago_binary.bin"),
@@ -247,7 +221,6 @@ function searchInDataset(query, dataset, dataset_titles, dataset_titles_lc, uf) 
 }
 
 function searchCoreAcronym(query) {
-  // console.log( `search core acronym ${query}` );
   const ql = query.toLowerCase();
   const exact = window.CORE_TITLES.filter(t => t.toLowerCase() === ql);
   if (exact.length > 0) {
@@ -258,12 +231,10 @@ function searchCoreAcronym(query) {
 }
 
 function searchCoreFullName(query) {
-  // console.log( `search core full name ${query}` );
   return searchInDataset(query, window.CORE, window.CORE_TITLES, window.CORE_TITLES_LC, window.uf);
 }
 
 function searchScimago(query) {
-  // console.log( `search scimago ${query}` );
   return searchInDataset(query, window.SCIMAGO, window.SCIMAGO_TITLES, window.SCIMAGO_TITLES_LC, window.uf);
 }
 
@@ -277,6 +248,7 @@ function loadData(b64) {
   });
 }
 
+// Caching logic
 const Cache = {
   set(key, value) {
     const entry = { value: value };
@@ -293,10 +265,57 @@ const Cache = {
     const raw = GM_getValue(key, null);
     if (!raw) return false;
     try {
-      JSON.parse(raw);
+      const content = JSON.parse(raw);
       return true;
     } catch {
       return false;
     }
   }
 };
+
+function clearCache() {
+  GM_listValues().forEach(key => GM_deleteValue(key));
+  alert('Cache cleared.');
+}
+
+// Promise.all([window.CORE_promise.promise, window.SCIMAGO_promise.promise])
+//         .then(() => document.querySelector("#pending-calls-item").remove());
+
+// Scheduler's logic
+class RequestScheduler {
+  constructor({ delay = 300, concurrency = 3 } = {}) {
+    this.delay = delay;             // ms between each dequeue
+    this.concurrency = concurrency; // max simultaneous concurrent requests
+    this.queue = [];
+    this.active = 0;
+    this.timer = null;
+  }
+
+  add(thunk) {
+    return new Promise((resolve, reject) => {
+      this.queue.push({ thunk, resolve, reject });
+      this._schedule();
+    });
+  }
+
+  _schedule() {
+    if (this.timer) return;
+    this.timer = setInterval(() => this._tick(), this.delay);
+  }
+
+  _tick() {
+    if (this.queue.length === 0) {
+      clearInterval(this.timer);
+      this.timer = null;
+      return;
+    }
+    if (this.active >= this.concurrency) return;
+
+    const { thunk, resolve, reject } = this.queue.shift();
+    this.active++;
+    thunk()
+      .then(resolve)
+      .catch(reject)
+      .finally(() => { this.active--; });
+  }
+}
