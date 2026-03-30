@@ -7,7 +7,7 @@ function removeInformal() {
 
 function addPendingCall() {
   if ( window.pendingCalls == 0 ){
-    document.querySelector("#stars_button").parentNode.insertAdjacentHTML("beforeEnd", "<li id='pending-calls-item' style='margin-left:1em;color:white;display:inline-block;cursor:pointer;'>Pending calls: <span id='pending-calls'>0</span></li>");
+    document.querySelector("#clear_cache").parentNode.insertAdjacentHTML("beforeEnd", "<li id='pending-calls-item' style='margin-left:1em;color:white;display:inline-block;cursor:pointer;'>Pending calls: <span id='pending-calls'>0</span></li>");
   }
   document.querySelector("#pending-calls").textContent = ++window.pendingCalls;
 }
