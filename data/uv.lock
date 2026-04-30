@@ -312,6 +312,21 @@ wheels = [
 ]
 
 [[package]]
+name = "data-processing"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "jupyter" },
+    { name = "pandas" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "jupyter", specifier = ">=1.1.1" },
+    { name = "pandas", specifier = ">=3.0.1" },
+]
+
+[[package]]
 name = "debugpy"
 version = "1.8.20"
 source = { registry = "https://pypi.org/simple" }
@@ -730,7 +745,7 @@ wheels = [
 
 [[package]]
 name = "jupyterlab"
-version = "4.5.6"
+version = "4.5.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "async-lru" },
@@ -747,9 +762,9 @@ dependencies = [
     { name = "tornado" },
     { name = "traitlets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ac/d5/730628e03fff2e8a8e8ccdaedde1489ab1309f9a4fa2536248884e30b7c7/jupyterlab-4.5.6.tar.gz", hash = "sha256:642fe2cfe7f0f5922a8a558ba7a0d246c7bc133b708dfe43f7b3a826d163cf42", size = 23970670, upload-time = "2026-03-11T14:17:04.531Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2b/22/8440ec827762146e7cdecf04335bd348795899d29dc6ae82238707353a2c/jupyterlab-4.5.7.tar.gz", hash = "sha256:55a9822c4754da305f41e113452c68383e214dcf96de760146af89ce5d5117b0", size = 23992763, upload-time = "2026-04-29T16:43:51.328Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e1/1b/dad6fdcc658ed7af26fdf3841e7394072c9549a8b896c381ab49dd11e2d9/jupyterlab-4.5.6-py3-none-any.whl", hash = "sha256:d6b3dac883aa4d9993348e0f8e95b24624f75099aed64eab6a4351a9cdd1e580", size = 12447124, upload-time = "2026-03-11T14:17:00.229Z" },
+    { url = "https://files.pythonhosted.org/packages/3d/aa/537b8f7d80e799af19af35fb3ddfc970b951088a13c57dd9387dcfbb7f61/jupyterlab-4.5.7-py3-none-any.whl", hash = "sha256:fba4cb0e2c44a52859669d8c98b45de029d5e515f8407bf8534d2a8fc5f0964d", size = 12450123, upload-time = "2026-04-29T16:43:46.639Z" },
 ]
 
 [[package]]
@@ -947,7 +962,7 @@ wheels = [
 
 [[package]]
 name = "notebook"
-version = "7.5.5"
+version = "7.5.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jupyter-server" },
@@ -956,9 +971,9 @@ dependencies = [
     { name = "notebook-shim" },
     { name = "tornado" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1f/6d/41052c48d6f6349ca0a7c4d1f6a78464de135e6d18f5829ba2510e62184c/notebook-7.5.5.tar.gz", hash = "sha256:dc0bfab0f2372c8278c457423d3256c34154ac2cc76bf20e9925260c461013c3", size = 14169167, upload-time = "2026-03-11T16:32:51.922Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2a/c2/cf59bd2e6f2c8b976b52477e3e53bf6f97bc714ed046a51821afb428eaee/notebook-7.5.6.tar.gz", hash = "sha256:621174aade80108f0020b0f00738000b215f75fa3cd90771ad7aa0f24536a4e1", size = 14170814, upload-time = "2026-04-30T11:46:26.613Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f8/aa/cbd1deb9f07446241e88f8d5fecccd95b249bca0b4e5482214a4d1714c49/notebook-7.5.5-py3-none-any.whl", hash = "sha256:a7c14dbeefa6592e87f72290ca982e0c10f5bbf3786be2a600fda9da2764a2b8", size = 14578929, upload-time = "2026-03-11T16:32:48.021Z" },
+    { url = "https://files.pythonhosted.org/packages/e9/d6/1fd0646b9bbd9efbb0b8ae21b2325fbef515769a5621c03e31d8eb8da587/notebook-7.5.6-py3-none-any.whl", hash = "sha256:4dde3f8fb55fa8fb7946d58c6e869ce9baf46d00fc070664f62604569d0faca0", size = 14581730, upload-time = "2026-04-30T11:46:22.342Z" },
 ]
 
 [[package]]
@@ -1488,21 +1503,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/85/70/92482ccffb96f5441aab93e26c4d66489eb599efdcf96fad90c14bbfb976/rpds_py-0.30.0-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:dbd936cde57abfee19ab3213cf9c26be06d60750e60a8e4dd85d1ab12c8b1f40", size = 556030, upload-time = "2025-11-30T20:24:10.956Z" },
     { url = "https://files.pythonhosted.org/packages/20/53/7c7e784abfa500a2b6b583b147ee4bb5a2b3747a9166bab52fec4b5b5e7d/rpds_py-0.30.0-cp314-cp314t-win32.whl", hash = "sha256:dc824125c72246d924f7f796b4f63c1e9dc810c7d9e2355864b3c3a73d59ade0", size = 211570, upload-time = "2025-11-30T20:24:12.735Z" },
     { url = "https://files.pythonhosted.org/packages/d0/02/fa464cdfbe6b26e0600b62c528b72d8608f5cc49f96b8d6e38c95d60c676/rpds_py-0.30.0-cp314-cp314t-win_amd64.whl", hash = "sha256:27f4b0e92de5bfbc6f86e43959e6edd1425c33b5e69aab0984a72047f2bcf1e3", size = 226532, upload-time = "2025-11-30T20:24:14.634Z" },
-]
-
-[[package]]
-name = "scimago"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "jupyter" },
-    { name = "pandas" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "jupyter", specifier = ">=1.1.1" },
-    { name = "pandas", specifier = ">=3.0.1" },
 ]
 
 [[package]]
